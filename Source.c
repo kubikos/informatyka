@@ -1,7 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
+#include<string.h>
 #include <time.h>
+#include <stdbool.h>
 
 typedef struct pacjent
 {
@@ -16,6 +18,18 @@ typedef struct pacjent
 pacjent* last = NULL;
 pacjent* first = NULL;
 
+void deleteAll(pacjent* element)
+{
+	if (element == NULL)
+	{
+		first = NULL;
+		last = NULL;
+		return;
+	}
+	deleteAll(element->next);
+	free(element);
+	return;
+}
 
 void forwardPrint(pacjent* element)
 {
@@ -121,6 +135,198 @@ int dodaj(char*imie, char*nazwisko, int wiek, char*objawa)
 	}
 	return 0;
 }
+
+
+void deleteOne(pacjent*element,int b)
+{
+	b--;
+	if (b == 0)
+	{
+		if (element->next == NULL && element->prev != NULL)
+		{
+			element->prev->next = NULL;
+			last = element->prev;
+		}
+		else if (element->prev == NULL && element->next != NULL)
+		{
+			element->next->prev = NULL;
+			first = element->next;
+		}
+		else if (element->prev == NULL && element->next == NULL)
+		{
+			last = NULL;
+			first = NULL;
+		}
+		else if(element->next != NULL && element->prev != NULL)
+		{
+			element->next->prev = element->prev;
+			element->prev->next = element->next;
+		}
+		free(element);
+		return;
+	}
+	
+	deleteOne(element->next, b);
+}
+
+void swapElements(pacjent* A, pacjent* B)
+{
+	if (A->prev != NULL)
+		A->prev->next = B;
+	else
+		first = B;
+
+	if (B->next != NULL)
+		B->next->prev = A;
+	else
+		last = A;
+
+	A->next = B->next;
+	B->prev = A->prev;
+	A->prev = B;
+	B->next = A;
+}
+
+int length(char* word)
+{
+	int c = 0;
+	while (word[c] != '\0')
+	{
+		c++;
+	}
+
+	c++;
+	return c;
+}
+
+char* upper_string(char* s) {
+	int c = 0;
+	char* out = (char*)malloc(length(s) * sizeof(char));
+	while (s[c] != '\0') {
+		if (s[c] >= 'a' && s[c] <= 'z') {
+			out[c] = s[c] - 32;
+		}
+		c++;
+	}
+
+	out[c] = '\0';
+
+	return out;
+}
+
+
+bool sort(pacjent* element, bool swap,int parameter, bool incr)
+{
+	if (element->next == NULL)
+		return swap;
+
+	switch (parameter)
+	{
+	case 1:
+		if (incr)
+		{
+			if (strcmp(upper_string(element->imie),upper_string(element->next->imie)) > 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		else
+		{
+			if (strcmp(upper_string(element->imie), upper_string(element->next->imie)) < 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		break;
+	case 2:
+		if (incr)
+		{
+			if (strcmp(upper_string(element->nazwisko), upper_string(element->next->nazwisko)) > 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		else
+		{
+			if (strcmp(upper_string(element->nazwisko), upper_string(element->next->nazwisko)) < 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		break;
+	case 3:
+		if (incr)
+		{
+			if (element->wiek > element->next->wiek)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		else
+		{
+			if (element->wiek < element->next->wiek)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		break;
+	case 4:
+		if (incr)
+		{
+			if (strcmp(upper_string(element->objawa), upper_string(element->next->objawa)) > 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		else
+		{
+			if (strcmp(upper_string(element->objawa), upper_string(element->next->objawa)) < 0)
+			{
+				swap = true;
+				swapElements(element, element->next);
+				return sort(element, swap, parameter, incr);
+			}
+		}
+		break;
+	default:
+		return swap;
+		break;
+	}
+
+	return sort(element->next, swap, parameter, incr);
+}
+
+void sortAsk()
+{
+	int a,tmp;
+	bool incr;
+	printf("Po czym chcesz sortowac? \n>Imie - 1\n>Nazwisko - 2\n>Wiek - 3\n>Objawa - 4\n");
+	scanf("%d", &a);
+	printf("Rosnaca - 1\n Malejaca - 0\n");
+	scanf("%d", &tmp);
+	incr = tmp;
+	while(sort(first, false, a, incr))
+	{
+		
+	}
+}
+
+
+
 /*
 void initialize()
 {
@@ -129,21 +335,20 @@ void initialize()
 
 }*/
 
+
+
+
 int main()
 {
-	int a=1;
-
-
-	
-	
+	int a = 1;
 	while (a != 0)
 	{
-		printf("\n..........................\n>Dodaj pacjenta - 1\n>Wyswietl wszystko - 2 \n>Wyswietl zakres - 3 \n>Wyswietl pojedynczy i nastepny lub poprzedni - 4\n>Wyjdz - 0\n");
+		printf("\n..........................\n>Dodaj pacjenta - 1\n>Wyswietl wszystko - 2 \n>Wyswietl zakres - 3 \n>Wyswietl pojedynczy i nastepny lub poprzedni - 4\n>Usun wszystkie elementy - 5\n>Usun wybrany element - 6\n>Posortuj - 7\n>Wyjdz - 0\n");
 		scanf("%d", &a);
 		system("cls");
 		switch (a)
 		{
-			int start, end;
+			int start, end,b;
 			case 1:
 			{
 				pacjent tmp;
@@ -167,8 +372,10 @@ int main()
 				wyswietl();
 				break;
 			case 3:
-				printf("podaj zakres \n");
-				scanf("%d %d", &start, &end);
+				printf("podaj zakres \n>poczatek\n");
+				scanf("%d", &start);
+				printf(">koniec\n");
+				scanf("%d", &end);
 				if (rangePrint(first, start, end) != 0)
 					printf("Error!\n");
 				break;
@@ -177,7 +384,20 @@ int main()
 				scanf(" %d", &start);
 				singlePrint(start);
 				break;
-
+			case 5:
+				deleteAll(first);
+				break;
+			case 6:
+				printf("Ktory element chcesz usunac? \n");
+				scanf("%d", &b);
+				deleteOne(first, b);
+				break;
+			case 7:
+				sortAsk();
+				break;
+			default:
+				a = 0;
+				break;
 		}
 
 	}
